@@ -1,10 +1,14 @@
-import {OAuthScope} from "@aws-cdk/aws-cognito";
-import {aws_cognito, Stack} from "aws-cdk-lib";
+import {Stack} from "aws-cdk-lib";
+import {AccountRecovery} from "aws-cdk-lib/aws-cognito";
+import cognito = require('aws-cdk-lib/aws-cognito');
 
-export function myUserPool(stack: Stack): aws_cognito.UserPool {
-    const pool = new aws_cognito.UserPool(stack, 'myuserpool', {
+export function myUserPool(stack: Stack): cognito.UserPool {
+    const pool = new cognito.UserPool(stack, 'btp-user-pool-id', {
         selfSignUpEnabled: true,
-        userPoolName: 'myawesomeapp-userpool',
+        userPoolName: 'btp-user-pool',
+        autoVerify: {
+            email: true
+        },
         standardAttributes: {
             email: {
                 required: true,
@@ -19,7 +23,12 @@ export function myUserPool(stack: Stack): aws_cognito.UserPool {
                 mutable: false
             }
         },
-        signInCaseSensitive: true,
+        userVerification: {
+            emailSubject: 'Verify your email for btp!',
+            emailBody: 'Thanks for signing up to btp! Your verification code is {####}',
+            emailStyle: cognito.VerificationEmailStyle.CODE
+        },
+        accountRecovery: AccountRecovery.EMAIL_ONLY,
         passwordPolicy: {
             minLength: 8,
             requireDigits: true,
@@ -28,23 +37,32 @@ export function myUserPool(stack: Stack): aws_cognito.UserPool {
             requireUppercase: true
         },
     });
-    pool.addDomain("domain_id", {
+    pool.addDomain("btp-user-pool-domain-id", {
         cognitoDomain: {
-            domainPrefix: 'banking-transaction-processor-test'
+            domainPrefix: 'banking-transaction-processor'
         }
     });
-    pool.addClient("app-client", {
-        userPoolClientName: 'app-client',
+
+    const fullAccessScope = new cognito.ResourceServerScope({ scopeName: '*', scopeDescription: 'Full access' });
+
+    const resourceServer = pool.addResourceServer('TransactionsResourceServer', {
+        identifier: 'btp-resource-server',
+        scopes: [fullAccessScope]
+    });
+
+    pool.addClient("btp-frontend-client-id", {
+        userPoolClientName: 'btp-frontend-client',
         generateSecret: true,
         oAuth: {
             flows: {
                 authorizationCodeGrant: true,
                 implicitCodeGrant: true
             },
-            scopes: [OAuthScope.EMAIL, OAuthScope.OPENID],
+            scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID, cognito.OAuthScope.resourceServer(resourceServer, fullAccessScope)],
             callbackUrls: ['http://localhost:8080/callback'],
             logoutUrls: ['http://localhost:8080/logout']
         }
     });
+
     return pool;
 }
