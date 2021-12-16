@@ -1,5 +1,5 @@
-import iam = require('aws-cdk-lib/aws-iam');
-import {Stack} from "aws-cdk-lib";
+import iam = require('@aws-cdk/aws-iam');
+import {Stack} from "@aws-cdk/core";
 
 export function myIamRoles(stack: Stack): iam.Role {
 

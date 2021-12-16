@@ -1,8 +1,7 @@
-import {Stack} from "aws-cdk-lib";
-import {AccountRecovery} from "aws-cdk-lib/aws-cognito";
-import cognito = require('aws-cdk-lib/aws-cognito');
+import {Stack} from "@aws-cdk/core";
+import cognito = require('@aws-cdk/aws-cognito');
 
-export function myUserPool(stack: Stack): cognito.UserPool {
+export function myUserPool(stack: Stack){
     const pool = new cognito.UserPool(stack, 'btp-user-pool-id', {
         selfSignUpEnabled: true,
         userPoolName: 'btp-user-pool',
@@ -28,7 +27,7 @@ export function myUserPool(stack: Stack): cognito.UserPool {
             emailBody: 'Thanks for signing up to btp! Your verification code is {####}',
             emailStyle: cognito.VerificationEmailStyle.CODE
         },
-        accountRecovery: AccountRecovery.EMAIL_ONLY,
+        accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
         passwordPolicy: {
             minLength: 8,
             requireDigits: true,
@@ -50,7 +49,7 @@ export function myUserPool(stack: Stack): cognito.UserPool {
         scopes: [fullAccessScope]
     });
 
-    pool.addClient("btp-frontend-client-id", {
+    const client = pool.addClient("btp-frontend-client-id", {
         userPoolClientName: 'btp-frontend-client',
         generateSecret: true,
         oAuth: {
@@ -64,5 +63,5 @@ export function myUserPool(stack: Stack): cognito.UserPool {
         }
     });
 
-    return pool;
+    return {client, pool};
 }

@@ -1,9 +1,11 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import {myUserPool} from "./cognito-constructs";
-import {myEcs} from "./ecs-constricts";
+import { Stack, StackProps } from '@aws-cdk/core';
+import { Construct } from '@aws-cdk/core';
+import {myUserPool} from "./cognito";
+import {myEcs} from "./ecs";
 import {myIamRoles} from "./iam-roles";
-import {mySqs} from "./sqs-construct";
+import {mySqs} from "./sqs";
+import {createApiGateway} from "./api-gateway";
+import {createDynamoTable} from "./dynamo";
 
 export class BankingTransactionProcessorIacStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -15,6 +17,11 @@ export class BankingTransactionProcessorIacStack extends Stack {
 
     const userPool = myUserPool(this);
 
-    myEcs(this, taskRole, sqs.queueUrl, userPool.userPoolId);
+    const dynamo = createDynamoTable(this, taskRole);
+
+    const ecs = myEcs(this, taskRole, sqs.queueUrl, userPool.pool.userPoolId);
+
+    createApiGateway(this, userPool.pool, userPool.client, ecs.listener);
+
   }
 }
