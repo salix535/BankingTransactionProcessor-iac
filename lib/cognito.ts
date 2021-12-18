@@ -1,7 +1,8 @@
 import {RemovalPolicy, Stack} from "@aws-cdk/core";
 import cognito = require('@aws-cdk/aws-cognito');
+import {HttpApi} from "@aws-cdk/aws-apigatewayv2";
 
-export function myUserPool(stack: Stack){
+export function myUserPool(stack: Stack, api: HttpApi){
     const pool = new cognito.UserPool(stack, 'btp-user-pool-id', {
         selfSignUpEnabled: true,
         userPoolName: 'btp-user-pool',
@@ -58,8 +59,8 @@ export function myUserPool(stack: Stack){
                 implicitCodeGrant: true
             },
             scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID, cognito.OAuthScope.resourceServer(resourceServer, fullAccessScope)],
-            callbackUrls: ['http://localhost:8080/callback'],
-            logoutUrls: ['http://localhost:8080/logout']
+            callbackUrls: [`${api.url}btp-front`],
+            logoutUrls: [`${api.url}btp-front`]
         }
     });
 

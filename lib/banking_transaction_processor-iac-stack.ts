@@ -4,9 +4,10 @@ import {myUserPool} from "./cognito";
 import {myEcs} from "./ecs";
 import {createEcsTaskRole, createLambdaRole} from "./iam-roles";
 import {mySqs} from "./sqs";
-import {createApiGateway} from "./api-gateway";
+import {configureApiGateway, configureApiGatewayFront, createBaseApyGateway} from "./api-gateway";
 import {createDynamoTable} from "./dynamo";
 import {createLambda} from "./lambda";
+import {createFrontendBucket} from "./s3";
 
 export class BankingTransactionProcessorIacStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -15,9 +16,15 @@ export class BankingTransactionProcessorIacStack extends Stack {
     const ecsTaskRole = createEcsTaskRole(this);
     const lambdaRole = createLambdaRole(this);
 
+    const apiGateway = createBaseApyGateway(this);
+
     const sqs = mySqs(this, ecsTaskRole, lambdaRole);
 
-    const userPool = myUserPool(this);
+    const frontendBucket = createFrontendBucket(this);
+
+    const userPool = myUserPool(this, apiGateway);
+
+    configureApiGatewayFront(apiGateway, frontendBucket);
 
     const dynamo = createDynamoTable(this, ecsTaskRole, lambdaRole);
 
@@ -25,7 +32,6 @@ export class BankingTransactionProcessorIacStack extends Stack {
 
     const ecs = myEcs(this, ecsTaskRole, sqs.queueUrl, userPool.pool.userPoolId);
 
-    createApiGateway(this, userPool.pool, userPool.client, ecs.listener);
-
+    configureApiGateway(apiGateway, userPool.pool, userPool.client, ecs.listener);
   }
 }

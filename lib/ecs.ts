@@ -8,7 +8,8 @@ import iam = require('@aws-cdk/aws-iam');
 export function myEcs(stack: Stack, taskRole: iam.Role, sqsUrl: string, userPoolId: string): ApplicationLoadBalancedFargateService {
 
     const vpc = new Vpc(stack, 'BtpVpc', {
-        maxAzs: 2
+        maxAzs: 2,
+        natGateways: 1
     });
     const cluster = new ecs.Cluster(stack, 'BtpClusterId', {vpc, clusterName: 'BtpCluster'});
 
