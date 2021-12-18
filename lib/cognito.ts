@@ -1,4 +1,4 @@
-import {Stack} from "@aws-cdk/core";
+import {RemovalPolicy, Stack} from "@aws-cdk/core";
 import cognito = require('@aws-cdk/aws-cognito');
 
 export function myUserPool(stack: Stack){
@@ -62,6 +62,8 @@ export function myUserPool(stack: Stack){
             logoutUrls: ['http://localhost:8080/logout']
         }
     });
+
+    client.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     return {client, pool};
 }

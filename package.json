@@ -20,6 +20,8 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
+    "@aws-cdk/aws-lambda-event-sources": "^1.136.0",
+    "@aws-cdk/aws-lambda-python": "^1.136.0",
     "@aws-cdk/aws-dynamodb": "^1.136.0",
     "@aws-cdk/aws-apigatewayv2": "^1.136.0",
     "@aws-cdk/aws-apigatewayv2-authorizers": "^1.136.0",
