@@ -4,14 +4,13 @@ import integration = require('@aws-cdk/aws-apigatewayv2-integrations');
 import authorizers = require('@aws-cdk/aws-apigatewayv2-authorizers');
 import {Stack} from "@aws-cdk/core";
 import {ApplicationListener} from "@aws-cdk/aws-elasticloadbalancingv2";
-import {Bucket} from "@aws-cdk/aws-s3";
 
 export function createBaseApyGateway(stack: Stack): api.HttpApi {
     return new api.HttpApi(stack, 'transactions-api', {
     });
 }
 
-export function configureApiGateway(apiGateway: api.HttpApi, userPool: cognito.UserPool, client: cognito.UserPoolClient,
+export function configureApiGatewayBackend(apiGateway: api.HttpApi, userPool: cognito.UserPool, client: cognito.UserPoolClient,
                                     listener: ApplicationListener): void {
     const albIntegration = new integration.HttpAlbIntegration('alb-integration-id', listener);
 
@@ -24,13 +23,5 @@ export function configureApiGateway(apiGateway: api.HttpApi, userPool: cognito.U
         methods: [api.HttpMethod.GET, api.HttpMethod.POST],
         integration: albIntegration,
         authorizer: authorizer
-    });
-}
-
-export function configureApiGatewayFront(apiGateway: api.HttpApi, bucket: Bucket): void {
-    apiGateway.addRoutes({
-        path: '/btp-front',
-        methods: [api.HttpMethod.GET],
-        integration: new integration.HttpUrlIntegration('frontend-integration', bucket.bucketWebsiteUrl)
     });
 }

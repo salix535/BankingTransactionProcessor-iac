@@ -5,7 +5,7 @@ import * as path from "path";
 import ecs = require('@aws-cdk/aws-ecs');
 import iam = require('@aws-cdk/aws-iam');
 
-export function myEcs(stack: Stack, taskRole: iam.Role, sqsUrl: string, userPoolId: string): ApplicationLoadBalancedFargateService {
+export function myEcs(stack: Stack, taskRole: iam.Role, sqsUrl: string, userPoolId: string, cloudFrontDomain: string): ApplicationLoadBalancedFargateService {
 
     const vpc = new Vpc(stack, 'BtpVpc', {
         maxAzs: 2,
@@ -28,7 +28,8 @@ export function myEcs(stack: Stack, taskRole: iam.Role, sqsUrl: string, userPool
         taskImageOptions: {
             environment: {
                 SQS_URL: sqsUrl,
-                USER_POOL_ID: userPoolId
+                USER_POOL_ID: userPoolId,
+                FRONTEND_URL: `https://${cloudFrontDomain}/`
             },
             taskRole: taskRole,
             containerPort: 8080,

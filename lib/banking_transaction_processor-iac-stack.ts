@@ -4,10 +4,14 @@ import {myUserPool} from "./cognito";
 import {myEcs} from "./ecs";
 import {createEcsTaskRole, createLambdaRole} from "./iam-roles";
 import {mySqs} from "./sqs";
-import {configureApiGateway, configureApiGatewayFront, createBaseApyGateway} from "./api-gateway";
+import {
+  configureApiGatewayBackend,
+  createBaseApyGateway
+} from "./api-gateway";
 import {createDynamoTable} from "./dynamo";
 import {createLambda} from "./lambda";
 import {createFrontendBucket} from "./s3";
+import {createCloudFront} from "./cloud-front";
 
 export class BankingTransactionProcessorIacStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -22,16 +26,16 @@ export class BankingTransactionProcessorIacStack extends Stack {
 
     const frontendBucket = createFrontendBucket(this);
 
-    const userPool = myUserPool(this, apiGateway);
+    const cloudFront = createCloudFront(this, frontendBucket);
 
-    configureApiGatewayFront(apiGateway, frontendBucket);
+    const userPool = myUserPool(this, cloudFront);
 
-    const dynamo = createDynamoTable(this, ecsTaskRole, lambdaRole);
+    createDynamoTable(this, ecsTaskRole, lambdaRole);
 
-    const lambda = createLambda(this, sqs, lambdaRole);
+    createLambda(this, sqs, lambdaRole);
 
-    const ecs = myEcs(this, ecsTaskRole, sqs.queueUrl, userPool.pool.userPoolId);
+    const ecs = myEcs(this, ecsTaskRole, sqs.queueUrl, userPool.pool.userPoolId, cloudFront.distributionDomainName);
 
-    configureApiGateway(apiGateway, userPool.pool, userPool.client, ecs.listener);
+    configureApiGatewayBackend(apiGateway, userPool.pool, userPool.client, ecs.listener);
   }
 }

@@ -1,8 +1,8 @@
-import {RemovalPolicy, Stack} from "@aws-cdk/core";
+import {Stack} from "@aws-cdk/core";
 import cognito = require('@aws-cdk/aws-cognito');
-import {HttpApi} from "@aws-cdk/aws-apigatewayv2";
+import {CloudFrontWebDistribution} from "@aws-cdk/aws-cloudfront";
 
-export function myUserPool(stack: Stack, api: HttpApi){
+export function myUserPool(stack: Stack, cloudFront: CloudFrontWebDistribution){
     const pool = new cognito.UserPool(stack, 'btp-user-pool-id', {
         selfSignUpEnabled: true,
         userPoolName: 'btp-user-pool',
@@ -44,10 +44,11 @@ export function myUserPool(stack: Stack, api: HttpApi){
     });
 
     const fullAccessScope = new cognito.ResourceServerScope({ scopeName: '*', scopeDescription: 'Full access' });
+    const readOnlyAccess = new cognito.ResourceServerScope({ scopeName: 'read', scopeDescription: 'Readonly access' });
 
     const resourceServer = pool.addResourceServer('TransactionsResourceServer', {
         identifier: 'btp-resource-server',
-        scopes: [fullAccessScope]
+        scopes: [fullAccessScope, readOnlyAccess]
     });
 
     const client = pool.addClient("btp-frontend-client-id", {
@@ -59,12 +60,10 @@ export function myUserPool(stack: Stack, api: HttpApi){
                 implicitCodeGrant: true
             },
             scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID, cognito.OAuthScope.resourceServer(resourceServer, fullAccessScope)],
-            callbackUrls: [`${api.url}btp-front`],
-            logoutUrls: [`${api.url}btp-front`]
+            callbackUrls: [`https://${cloudFront.distributionDomainName}`],
+            logoutUrls: [`https://${cloudFront.distributionDomainName}`]
         }
     });
-
-    client.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     return {client, pool};
 }
