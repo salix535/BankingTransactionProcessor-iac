@@ -24,4 +24,10 @@ export function configureApiGatewayBackend(apiGateway: api.HttpApi, userPool: co
         integration: albIntegration,
         authorizer: authorizer
     });
+
+    apiGateway.addRoutes({
+        path: '/transactions',
+        methods: [api.HttpMethod.OPTIONS],
+        integration: albIntegration
+    });
 }
