@@ -9,8 +9,10 @@ export function myEcs(stack: Stack, taskRole: iam.Role, sqsUrl: string, userPool
 
     const vpc = new Vpc(stack, 'BtpVpc', {
         maxAzs: 2,
-        natGateways: 1
+        natGateways: 1,
+        enableDnsHostnames: false
     });
+
     const cluster = new ecs.Cluster(stack, 'BtpClusterId', {vpc, clusterName: 'BtpCluster'});
 
     const logging = new ecs.AwsLogDriver({
