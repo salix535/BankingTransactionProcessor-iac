@@ -5,13 +5,13 @@ import authorizers = require('@aws-cdk/aws-apigatewayv2-authorizers');
 import {Stack} from "@aws-cdk/core";
 import {ApplicationListener} from "@aws-cdk/aws-elasticloadbalancingv2";
 
-export function createBaseApyGateway(stack: Stack): api.HttpApi {
-    return new api.HttpApi(stack, 'transactions-api', {
+export function createApiGateway(stack: Stack, userPool: cognito.UserPool, client: cognito.UserPoolClient,
+    listener: ApplicationListener, cloudFrontDomainName: string): api.HttpApi {
+    const apiGateway = new api.HttpApi(stack, 'transactions-api', {
+        corsPreflight: {
+            allowOrigins: [`https://${cloudFrontDomainName}/`]
+        }
     });
-}
-
-export function configureApiGatewayBackend(apiGateway: api.HttpApi, userPool: cognito.UserPool, client: cognito.UserPoolClient,
-                                    listener: ApplicationListener): void {
     const albIntegration = new integration.HttpAlbIntegration('alb-integration-id', listener);
 
     const authorizer = new authorizers.HttpUserPoolAuthorizer( 'btp-user-pool-authorizer',userPool,{
@@ -30,4 +30,6 @@ export function configureApiGatewayBackend(apiGateway: api.HttpApi, userPool: co
         methods: [api.HttpMethod.OPTIONS],
         integration: albIntegration
     });
+
+    return apiGateway;
 }
