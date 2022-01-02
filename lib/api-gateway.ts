@@ -9,7 +9,11 @@ export function createApiGateway(stack: Stack, userPool: cognito.UserPool, clien
     listener: ApplicationListener, cloudFrontDomainName: string): api.HttpApi {
     const apiGateway = new api.HttpApi(stack, 'transactions-api', {
         corsPreflight: {
-            allowOrigins: [`https://${cloudFrontDomainName}/`]
+            allowOrigins: [`https://${cloudFrontDomainName}/`],
+            allowHeaders: ['*'],
+            allowCredentials: true,
+            exposeHeaders: ['*'],
+            allowMethods: [api.CorsHttpMethod.ANY]
         }
     });
     const albIntegration = new integration.HttpAlbIntegration('alb-integration-id', listener);

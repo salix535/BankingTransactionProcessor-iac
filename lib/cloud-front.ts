@@ -11,7 +11,7 @@ export function createCloudFront(stack: Stack, sourceBucket: Bucket): cf.CloudFr
                     domainName: sourceBucket.bucketWebsiteDomainName,
                     originProtocolPolicy: OriginProtocolPolicy.HTTP_ONLY
                 },
-                behaviors : [ {isDefaultBehavior: true}],
+                behaviors : [{isDefaultBehavior: true},],
             },
         ],
     });
